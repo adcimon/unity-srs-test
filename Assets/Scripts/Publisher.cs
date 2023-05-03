@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using UnityEngine;
 using Unity.WebRTC;
@@ -13,7 +14,7 @@ public class Publisher : MonoBehaviour
         HTTPS
     }
 
-    [Header("WHIP URL")]
+    [Header("WHIP")]
     [Tooltip("http://localhost:1985/rtc/v1/whip/?app=live&stream=livestream")]
     public Protocol protocol = Protocol.HTTP;
     [Tooltip("http://localhost:1985/rtc/v1/whip/?app=live&stream=livestream")]
@@ -26,23 +27,11 @@ public class Publisher : MonoBehaviour
     public string stream = "livestream";
     public string url { get { return $"{this.protocol.ToString().ToLower()}://{this.host}:{this.port}/rtc/v1/whip/?app={this.app}&stream={this.stream}"; } }
 
-    [Header("Camera")]
-    [Tooltip("Should be a dedicated camera.")]
-    public Camera streamingCamera;
-    public int width = 1280;
-    public int height = 720;
+    [Header("Media")]
+    public MediaSender audioSender;
+    public MediaSender videoSender;
 
-    private WebCamTexture webCamTexture;
-    private MediaStream videoStream;
-    private AudioStreamTrack audioStreamTrack;
     private RTCPeerConnection peerConnection;
-
-    // To make the work flow better to understand, not required.
-    // You can directly use the `OnAudioFilterRead` function to feed audio stream track.
-    // Capture all audio of game, if bind this script to the only one listener in scene, for example, bind to the 'Main Camera',
-    // so that we could capture audio data in 'OnAudioFilterRead'.
-    private delegate void DelegateOnAudioFilterRead( float[] data, int channels );
-    private DelegateOnAudioFilterRead handleOnAudioFilterRead;
 
     private void Awake()
     {
@@ -83,45 +72,21 @@ public class Publisher : MonoBehaviour
             peerConnection.AddTransceiver(TrackKind.Audio, init);
             peerConnection.AddTransceiver(TrackKind.Video, init);
 
-            yield return StartCoroutine(GrabCamera());
+            yield return StartCoroutine(GrabVideo());
         }
 
-        // Grab the game camera.
-        IEnumerator GrabCamera()
+        IEnumerator GrabVideo()
         {
-            videoStream = streamingCamera.CaptureStream(width, height);
-            Debug.Log($"WebRTC: Grab camera stream={videoStream.Id}, size={streamingCamera.targetTexture.width}x{streamingCamera.targetTexture.height}");
-
-            foreach( var track in videoStream.GetTracks() )
-            {
-                peerConnection.AddTrack(track);
-                Debug.Log($"WebRTC: Add {track.Kind} track, id={track.Id}");
-            }
+            peerConnection.AddTrack(videoSender.GetTrack());
+            Debug.Log($"WebRTC: Add video track, id={videoSender.GetTrack().Id}");
 
             yield return StartCoroutine(GrabAudio());
         }
 
-        // Grab the game audio, from the only one listener, the main camera,
-        // that script should be attached to. And we will get audio data from
-        // the function this.OnAudioFilterRead.
         IEnumerator GrabAudio()
         {
-            // Use empty contructor to use listener, see https://docs.unity3d.com/Packages/com.unity.webrtc@2.4/manual/audiostreaming.html
-            audioStreamTrack = new AudioStreamTrack();
-            peerConnection.AddTrack(audioStreamTrack);
-            Debug.Log($"WebRTC: Add audio track, id={audioStreamTrack.Id}");
-
-            // When got audio data from listener, the gameObject this script
-            // attached to, generally the MainCamera object, we feed audio data to
-            // audio stream track.
-            handleOnAudioFilterRead = (float[] data, int channels) =>
-            {
-                if( audioStreamTrack != null )
-                {
-                    const int sampleRate = 48000;
-                    audioStreamTrack.SetData(data, channels, sampleRate);
-                }
-            };
+            peerConnection.AddTrack(audioSender.GetTrack());
+            Debug.Log($"WebRTC: Add audio track, id={audioSender.GetTrack().Id}");
 
             yield return StartCoroutine(PeerNegotiationNeeded());
         }
@@ -167,7 +132,7 @@ public class Publisher : MonoBehaviour
                 Debug.Log($"WebRTC: Build uri {uri}");
 
                 var content = new StringContent(offer);
-                content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/sdp");
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/sdp");
 
                 var client = new HttpClient();
                 var res = await client.PostAsync(uri, content);
@@ -205,30 +170,11 @@ public class Publisher : MonoBehaviour
         }
     }
 
-    private void OnAudioFilterRead( float[] data, int channels )
-    {
-        if( handleOnAudioFilterRead != null )
-        {
-            handleOnAudioFilterRead(data, channels);
-        }
-    }
-
     private void OnDestroy()
     {
-        videoStream?.Dispose();
-        videoStream = null;
-
-        handleOnAudioFilterRead = null;
-
-        audioStreamTrack?.Dispose();
-        audioStreamTrack = null;
-
         peerConnection?.Close();
         peerConnection?.Dispose();
         peerConnection = null;
-
-        webCamTexture?.Stop();
-        webCamTexture = null;
 
         WebRTC.Dispose();
         Debug.Log("WebRTC: Dispose ok");

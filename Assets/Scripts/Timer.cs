@@ -1,16 +1,10 @@
 using UnityEngine;
 using TMPro;
 
-[RequireComponent(typeof(TMP_Text))]
 public class Timer : MonoBehaviour
 {
-    private TMP_Text text;
+    public TMP_Text text;
     private float time;
-
-    private void Awake()
-    {
-        text = GetComponent<TMP_Text>();
-    }
 
     private void Update()
     {

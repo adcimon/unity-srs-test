@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,7 +15,7 @@ public class Subscriber : MonoBehaviour
         HTTPS
     }
 
-    [Header("WHIP URL")]
+    [Header("WHIP")]
     [Tooltip("http://localhost:1985/rtc/v1/whip-play/?app=live&stream=livestream")]
     public Protocol protocol = Protocol.HTTP;
     [Tooltip("http://localhost:1985/rtc/v1/whip-play/?app=live&stream=livestream")]
@@ -27,8 +28,9 @@ public class Subscriber : MonoBehaviour
     public string stream = "livestream";
     public string url { get { return $"{this.protocol.ToString().ToLower()}://{this.host}:{this.port}/rtc/v1/whip-play/?app={this.app}&stream={this.stream}"; } }
 
-    public RawImage rawImage;
+    [Header("Media")]
     public AudioSource audioSource;
+    public RawImage rawImage;
 
     private MediaStream mediaStream;
     private RTCPeerConnection peerConnection;
@@ -142,7 +144,7 @@ public class Subscriber : MonoBehaviour
                 Debug.Log($"WebRTC: Build uri {uri}");
 
                 var content = new StringContent(offer);
-                content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/sdp");
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/sdp");
 
                 var client = new HttpClient();
                 var res = await client.PostAsync(uri, content);

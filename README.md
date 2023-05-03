@@ -25,7 +25,7 @@ docker run \
 	-c conf/docker.conf
 ```
 
-Configuration file.
+Configuration file ([docker.conf](https://github.com/ossrs/srs/blob/develop/trunk/conf/docker.conf)).
 ```
 # docker config for srs.
 # @see full.conf for detail config.
