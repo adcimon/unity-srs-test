@@ -35,63 +35,59 @@ public class Subscriber : MonoBehaviour
     private MediaStream mediaStream;
     private RTCPeerConnection peerConnection;
 
-    private void Awake()
+    public void Subscribe()
     {
-        WebRTC.Initialize();
-        Debug.Log("WebRTC: Initialize ok");
-    }
+        Debug.Log($"Subscribing to {url}");
 
-    private void Start()
-    {
-        Debug.Log($"WebRTC: Start to play {url}");
-
-        // Start WebRTC update.
-        StartCoroutine(WebRTC.Update());
-
-        // Create object only after WebRTC initialized.
         peerConnection = new RTCPeerConnection();
         mediaStream = new MediaStream();
 
-        // Setup player peer connection.
         peerConnection.OnIceCandidate = candidate =>
         {
-            Debug.Log($"WebRTC: OnIceCandidate {candidate.ToString()}");
+            Debug.Log($"OnIceCandidate candidate={candidate.ToString()}");
         };
         peerConnection.OnIceConnectionChange = state =>
         {
-            Debug.Log($"WebRTC: OnIceConnectionChange {state.ToString()}");
+            Debug.Log($"OnIceConnectionChange state={state.ToString()}");
         };
         peerConnection.OnTrack = e =>
         {
             mediaStream.AddTrack(e.Track);
         };
 
-        // Setup player media stream.
         mediaStream.OnAddTrack = e =>
         {
-            Debug.Log($"WebRTC: OnAddTrack {e.ToString()}");
-            if( e.Track is VideoStreamTrack videoTrack )
-            {
-                videoTrack.OnVideoReceived += tex =>
-                {
-                    Debug.Log($"WebRTC: OnVideoReceived {videoTrack.ToString()}, tex={tex.width}x{tex.height}");
-                    rawImage.texture = tex;
-
-                    var width = tex.width < 1280 ? tex.width : 1280;
-                    var height = tex.width > 0 ? width * tex.height / tex.width : 720;
-                    rawImage.rectTransform.sizeDelta = new Vector2(width, height);
-                };
-            }
+            Debug.Log($"OnAddTrack {e.ToString()}");
             if( e.Track is AudioStreamTrack audioTrack )
             {
-                Debug.Log($"WebRTC: OnAudioReceived {audioTrack.ToString()}");
+                Debug.Log($"OnAudioReceived track={audioTrack.ToString()}");
                 audioSource.SetTrack(audioTrack);
                 audioSource.loop = true;
                 audioSource.Play();
             }
+            if( e.Track is VideoStreamTrack videoTrack )
+            {
+                videoTrack.OnVideoReceived += texture =>
+                {
+                    Debug.Log($"OnVideoReceived track={videoTrack.ToString()} texture={texture.width}x{texture.height}");
+                    rawImage.texture = texture;
+
+                    int width = texture.width < 1280 ? texture.width : 1280;
+                    int height = texture.width > 0 ? width * texture.height / texture.width : 720;
+                    rawImage.rectTransform.sizeDelta = new Vector2(width, height);
+
+                    AspectRatioFitter aspectRatioFitter = rawImage.GetComponent<AspectRatioFitter>();
+                    if( aspectRatioFitter )
+                    {
+                        aspectRatioFitter.aspectRatio = (float) width / height;
+                    }
+
+                    rawImage.enabled = true;
+                    rawImage.gameObject.SetActive(true);
+                };
+            }
         };
 
-        // Setup PeerConnection to receive stream only.
         StartCoroutine(SetupPeerConnection());
         IEnumerator SetupPeerConnection()
         {
@@ -103,13 +99,12 @@ public class Subscriber : MonoBehaviour
             yield return StartCoroutine(PeerNegotiationNeeded());
         }
 
-        // Generate offer.
         IEnumerator PeerNegotiationNeeded()
         {
             var op = peerConnection.CreateOffer();
             yield return op;
 
-            Debug.Log($"WebRTC: CreateOffer done={op.IsDone}, hasError={op.IsError}, {op.Desc}");
+            Debug.Log($"CreateOffer done={op.IsDone} hasError={op.IsError} sdp={op.Desc}");
             if( op.IsError )
             {
                 yield break;
@@ -118,14 +113,13 @@ public class Subscriber : MonoBehaviour
             yield return StartCoroutine(OnCreateOfferSuccess(op.Desc));
         }
 
-        // When offer is ready, set to local description.
         IEnumerator OnCreateOfferSuccess( RTCSessionDescription offer )
         {
             var op = peerConnection.SetLocalDescription(ref offer);
-            Debug.Log($"WebRTC: SetLocalDescription {offer.type} {offer.sdp}");
+            Debug.Log($"SetLocalDescription type={offer.type} sdp={offer.sdp}");
             yield return op;
 
-            Debug.Log($"WebRTC: Offer done={op.IsDone}, hasError={op.IsError}");
+            Debug.Log($"Offer done={op.IsDone} hasError={op.IsError}");
             if( op.IsError )
             {
                 yield break;
@@ -134,14 +128,12 @@ public class Subscriber : MonoBehaviour
             yield return StartCoroutine(ExchangeSDP(url, offer.sdp));
         }
 
-        // Exchange SDP(offer) with server, got answer.
         IEnumerator ExchangeSDP( string url, string offer )
         {
-            // Use Task to call async methods.
             var task = Task<string>.Run(async () =>
             {
                 Uri uri = new UriBuilder(url).Uri;
-                Debug.Log($"WebRTC: Build uri {uri}");
+                Debug.Log($"Build uri {uri}");
 
                 var content = new StringContent(offer);
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/sdp");
@@ -151,23 +143,21 @@ public class Subscriber : MonoBehaviour
                 res.EnsureSuccessStatusCode();
 
                 string data = await res.Content.ReadAsStringAsync();
-                Debug.Log($"WebRTC: Exchange SDP ok, answer is {data}");
+                Debug.Log($"Exchange SDP success, answer={data}");
                 return data;
             });
 
-            // Covert async to coroutine yield, wait for task to be completed.
             yield return new WaitUntil(() => task.IsCompleted);
-            // Check async task exception, it won't throw it automatically.
+
             if( task.Exception != null )
             {
-                Debug.Log($"WebRTC: Exchange SDP failed, url={url}, err is {task.Exception.ToString()}");
+                Debug.Log($"Exchange SDP failure, url={url} error={task.Exception.ToString()}");
                 yield break;
             }
 
             StartCoroutine(OnGotAnswerSuccess(task.Result));
         }
 
-        // When got answer, set remote description.
         IEnumerator OnGotAnswerSuccess( string answer )
         {
             RTCSessionDescription desc = new RTCSessionDescription();
@@ -176,7 +166,7 @@ public class Subscriber : MonoBehaviour
             var op = peerConnection.SetRemoteDescription(ref desc);
             yield return op;
 
-            Debug.Log($"WebRTC: Answer done={op.IsDone}, hasError={op.IsError}");
+            Debug.Log($"Answer done={op.IsDone} hasError={op.IsError}");
             yield break;
         }
     }
@@ -186,8 +176,5 @@ public class Subscriber : MonoBehaviour
         peerConnection?.Close();
         peerConnection?.Dispose();
         peerConnection = null;
-
-        WebRTC.Dispose();
-        Debug.Log("WebRTC: Dispose ok");
     }
 }
