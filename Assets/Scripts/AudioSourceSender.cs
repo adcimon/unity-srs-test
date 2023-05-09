@@ -4,21 +4,21 @@ using Unity.WebRTC;
 [RequireComponent(typeof(AudioSource))]
 public class AudioSourceSender : MediaSender
 {
-    private AudioSource audioSource;
-    private AudioStreamTrack audioTrack;
+	private AudioSource audioSource;
+	private AudioStreamTrack audioTrack;
 
-    private void Awake()
-    {
-        audioSource = this.GetComponent<AudioSource>();
-    }
+	private void Awake()
+	{
+		audioSource = this.GetComponent<AudioSource>();
+	}
 
-    private void Start()
-    {
-        audioTrack = new AudioStreamTrack(audioSource);
-    }
+	private void Start()
+	{
+		audioTrack = new AudioStreamTrack(audioSource);
+	}
 
-    public override MediaStreamTrack GetTrack()
-    {
-        return audioTrack;
-    }
+	public override MediaStreamTrack GetTrack()
+	{
+		return audioTrack;
+	}
 }
