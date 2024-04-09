@@ -18,7 +18,7 @@ public class CameraSender : MediaSender
 
 	private void Start()
 	{
-		if( useCurrentResolution )
+		if (useCurrentResolution)
 		{
 			width = Screen.currentResolution.width;
 			height = Screen.currentResolution.height;
@@ -27,7 +27,7 @@ public class CameraSender : MediaSender
 		CaptureStream(width, height);
 	}
 
-	public void CaptureStream( int width, int height )
+	public void CaptureStream(int width, int height)
 	{
 		videoTrack = cam.CaptureStreamTrack(width, height);
 	}

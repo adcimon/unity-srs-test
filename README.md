@@ -1,11 +1,11 @@
-# Unity SRS Template
+# Unity SRS Test
 
-Unity and [SRS](https://github.com/ossrs) template project.
+Unity and [SRS](https://github.com/ossrs) test project.
 
 <p align="center"><img align="center" src="example.gif"></p>
 
 Requirements:
-* Unity 2021.3.23f1
+* Unity 2021.3
 * [Unity WebRTC 3.0.0-pre.5](https://github.com/Unity-Technologies/com.unity.webrtc)
 * [SRS ossrs/srs:5](https://hub.docker.com/r/ossrs/srs)
 

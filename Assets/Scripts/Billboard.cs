@@ -11,28 +11,28 @@ public class Billboard : MonoBehaviour
 		Vector3 forward;
 		Vector3 up;
 
-		switch( pivotAxis )
+		switch (pivotAxis)
 		{
 			case PivotAxis.X:
-			{
-				Vector3 right = transform.right;
-				forward = Vector3.ProjectOnPlane(target.transform.forward, right).normalized;
-				up = Vector3.Cross(forward, right);
-				break;
-			}
+				{
+					Vector3 right = transform.right;
+					forward = Vector3.ProjectOnPlane(target.transform.forward, right).normalized;
+					up = Vector3.Cross(forward, right);
+					break;
+				}
 			case PivotAxis.Y:
-			{
-				up = transform.up;
-				forward = Vector3.ProjectOnPlane(target.transform.forward, up).normalized;
-				break;
-			}
+				{
+					up = transform.up;
+					forward = Vector3.ProjectOnPlane(target.transform.forward, up).normalized;
+					break;
+				}
 			case PivotAxis.Free:
 			default:
-			{
-				forward = target.transform.forward;
-				up = target.transform.up;
-				break;
-			}
+				{
+					forward = target.transform.forward;
+					up = target.transform.up;
+					break;
+				}
 		}
 
 		transform.rotation = Quaternion.LookRotation(forward, up);

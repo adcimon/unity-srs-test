@@ -58,7 +58,7 @@ public class InspectionCameraController : MonoBehaviour
 		inputRotation = new Vector3(transform.localRotation.eulerAngles.y, -transform.localRotation.eulerAngles.x, 0);
 
 		// Set the pivot's parent.
-		if( transform.parent != null )
+		if (transform.parent != null)
 		{
 			pivot.SetParent(transform.parent);
 		}
@@ -72,32 +72,32 @@ public class InspectionCameraController : MonoBehaviour
 
 	private void LateUpdate()
 	{
-		if( Input.GetKeyDown(disableKey) )
+		if (Input.GetKeyDown(disableKey))
 		{
 			controllerDisabled = !controllerDisabled;
 		}
 
-		if( controllerDisabled )
+		if (controllerDisabled)
 		{
 			return;
 		}
 
-		if( orbit )
+		if (orbit)
 		{
 			Orbit();
 		}
 
-		if( zoom )
+		if (zoom)
 		{
 			Zoom();
 		}
 
-		if( pan )
+		if (pan)
 		{
 			Pan();
 		}
 
-		if( movement )
+		if (movement)
 		{
 			Movement();
 		}
@@ -108,7 +108,7 @@ public class InspectionCameraController : MonoBehaviour
 	/// </summary>
 	private void Orbit()
 	{
-		if( !(!Input.GetKey(orbitKey) && useKey) && (Input.GetAxis(orbitAxisX) != 0 || Input.GetAxis(orbitAxisY) != 0) )
+		if (!(!Input.GetKey(orbitKey) && useKey) && (Input.GetAxis(orbitAxisX) != 0 || Input.GetAxis(orbitAxisY) != 0))
 		{
 			// Calculate the rotation amount.
 			inputRotation.x += (invertX ? -1 : 1) * Input.GetAxis(orbitAxisX) * orbitSensitivity;
@@ -125,7 +125,7 @@ public class InspectionCameraController : MonoBehaviour
 	/// </summary>
 	private void Zoom()
 	{
-		if( Input.GetAxis(zoomAxis) != 0 )
+		if (Input.GetAxis(zoomAxis) != 0)
 		{
 			// Calculate the movement amount.
 			float zoomAmount = Input.GetAxis(zoomAxis) * zoomSensitivity;
@@ -134,7 +134,7 @@ public class InspectionCameraController : MonoBehaviour
 			cameraDistance = Mathf.Clamp(cameraDistance, zoomRange.x, zoomRange.y);
 		}
 
-		if( transform.localPosition.z != -cameraDistance )
+		if (transform.localPosition.z != -cameraDistance)
 		{
 			// Perform the zooming.
 			transform.localPosition = new Vector3(0, 0, Mathf.Lerp(transform.localPosition.z, -cameraDistance, Time.deltaTime * zoomDampening));
@@ -146,13 +146,13 @@ public class InspectionCameraController : MonoBehaviour
 	/// </summary>
 	private void Pan()
 	{
-		if( Input.GetKeyDown(panKey) )
+		if (Input.GetKeyDown(panKey))
 		{
 			// Update the position.
 			lastPanPosition = Input.mousePosition;
 		}
 
-		if( Input.GetKey(panKey) )
+		if (Input.GetKey(panKey))
 		{
 			Vector3 newPanPosition = Input.mousePosition;
 
@@ -174,12 +174,12 @@ public class InspectionCameraController : MonoBehaviour
 	/// </summary>
 	private void Movement()
 	{
-		if( Input.GetKey(forwardKey) || Input.GetKey(backwardKey) || Input.GetKey(rightKey) || Input.GetKey(leftKey) )
+		if (Input.GetKey(forwardKey) || Input.GetKey(backwardKey) || Input.GetKey(rightKey) || Input.GetKey(leftKey))
 		{
 			Vector3 translation = Vector3.zero;
 
 			// Movement on the X axis.
-			if( Input.GetKey(rightKey) || Input.GetKey(leftKey) )
+			if (Input.GetKey(rightKey) || Input.GetKey(leftKey))
 			{
 				// Calculate the movement amount.
 				float direction = (Input.GetKey(rightKey)) ? 1 : -1;
@@ -190,7 +190,7 @@ public class InspectionCameraController : MonoBehaviour
 			}
 
 			// Movement on the Z axis.
-			if( Input.GetKey(forwardKey) || Input.GetKey(backwardKey) )
+			if (Input.GetKey(forwardKey) || Input.GetKey(backwardKey))
 			{
 				// Calculate the movement amount.
 				float direction = (Input.GetKey(forwardKey)) ? 1 : -1;

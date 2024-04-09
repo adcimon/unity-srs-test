@@ -13,9 +13,9 @@ public class AudioListenerSender : MediaSender
 		audioTrack = new AudioStreamTrack();
 	}
 
-	private void OnAudioFilterRead( float[] data, int channels )
+	private void OnAudioFilterRead(float[] data, int channels)
 	{
-		if( audioTrack != null )
+		if (audioTrack != null)
 		{
 			audioTrack.SetData(data, channels, sampleRate);
 		}

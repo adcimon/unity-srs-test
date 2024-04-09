@@ -85,7 +85,7 @@ public class Publisher : MonoBehaviour
 			yield return op;
 
 			Debug.Log($"CreateOffer done={op.IsDone} hasError={op.IsError} offer={op.Desc}");
-			if( op.IsError )
+			if (op.IsError)
 			{
 				yield break;
 			}
@@ -93,14 +93,14 @@ public class Publisher : MonoBehaviour
 			yield return StartCoroutine(OnCreateOfferSuccess(op.Desc));
 		}
 
-		IEnumerator OnCreateOfferSuccess( RTCSessionDescription offer )
+		IEnumerator OnCreateOfferSuccess(RTCSessionDescription offer)
 		{
 			var op = peerConnection.SetLocalDescription(ref offer);
 			Debug.Log($"SetLocalDescription type={offer.type} sdp={offer.sdp}");
 			yield return op;
 
 			Debug.Log($"Offer done={op.IsDone} hasError={op.IsError}");
-			if( op.IsError )
+			if (op.IsError)
 			{
 				yield break;
 			}
@@ -108,7 +108,7 @@ public class Publisher : MonoBehaviour
 			yield return StartCoroutine(ExchangeSDP(url, offer.sdp));
 		}
 
-		IEnumerator ExchangeSDP( string url, string offer )
+		IEnumerator ExchangeSDP(string url, string offer)
 		{
 			var task = Task<string>.Run(async () =>
 			{
@@ -129,7 +129,7 @@ public class Publisher : MonoBehaviour
 
 			yield return new WaitUntil(() => task.IsCompleted);
 
-			if( task.Exception != null )
+			if (task.Exception != null)
 			{
 				Debug.Log($"Exchange SDP failure, url={url} error={task.Exception.ToString()}");
 				yield break;
@@ -138,7 +138,7 @@ public class Publisher : MonoBehaviour
 			StartCoroutine(OnGotAnswerSuccess(task.Result));
 		}
 
-		IEnumerator OnGotAnswerSuccess( string answer )
+		IEnumerator OnGotAnswerSuccess(string answer)
 		{
 			RTCSessionDescription desc = new RTCSessionDescription();
 			desc.type = RTCSdpType.Answer;

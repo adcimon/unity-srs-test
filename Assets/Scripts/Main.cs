@@ -22,7 +22,7 @@ public class Main : MonoBehaviour
 
 	private void OnPublish()
 	{
-		if( onPublish != null )
+		if (onPublish != null)
 		{
 			onPublish.Invoke();
 			this.Invoke("OnSubscribe", subscribeDelay);
@@ -31,7 +31,7 @@ public class Main : MonoBehaviour
 
 	private void OnSubscribe()
 	{
-		if( onSubscribe != null )
+		if (onSubscribe != null)
 		{
 			onSubscribe.Invoke();
 		}

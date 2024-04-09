@@ -58,14 +58,14 @@ public class Subscriber : MonoBehaviour
 		mediaStream.OnAddTrack = e =>
 		{
 			Debug.Log($"OnAddTrack {e.ToString()}");
-			if( e.Track is AudioStreamTrack audioTrack )
+			if (e.Track is AudioStreamTrack audioTrack)
 			{
 				Debug.Log($"OnAudioReceived track={audioTrack.ToString()}");
 				audioSource.SetTrack(audioTrack);
 				audioSource.loop = true;
 				audioSource.Play();
 			}
-			if( e.Track is VideoStreamTrack videoTrack )
+			if (e.Track is VideoStreamTrack videoTrack)
 			{
 				videoTrack.OnVideoReceived += texture =>
 				{
@@ -77,9 +77,9 @@ public class Subscriber : MonoBehaviour
 					rawImage.rectTransform.sizeDelta = new Vector2(width, height);
 
 					AspectRatioFitter aspectRatioFitter = rawImage.GetComponent<AspectRatioFitter>();
-					if( aspectRatioFitter )
+					if (aspectRatioFitter)
 					{
-						aspectRatioFitter.aspectRatio = (float) width / height;
+						aspectRatioFitter.aspectRatio = (float)width / height;
 					}
 
 					rawImage.enabled = true;
@@ -105,7 +105,7 @@ public class Subscriber : MonoBehaviour
 			yield return op;
 
 			Debug.Log($"CreateOffer done={op.IsDone} hasError={op.IsError} sdp={op.Desc}");
-			if( op.IsError )
+			if (op.IsError)
 			{
 				yield break;
 			}
@@ -113,14 +113,14 @@ public class Subscriber : MonoBehaviour
 			yield return StartCoroutine(OnCreateOfferSuccess(op.Desc));
 		}
 
-		IEnumerator OnCreateOfferSuccess( RTCSessionDescription offer )
+		IEnumerator OnCreateOfferSuccess(RTCSessionDescription offer)
 		{
 			var op = peerConnection.SetLocalDescription(ref offer);
 			Debug.Log($"SetLocalDescription type={offer.type} sdp={offer.sdp}");
 			yield return op;
 
 			Debug.Log($"Offer done={op.IsDone} hasError={op.IsError}");
-			if( op.IsError )
+			if (op.IsError)
 			{
 				yield break;
 			}
@@ -128,7 +128,7 @@ public class Subscriber : MonoBehaviour
 			yield return StartCoroutine(ExchangeSDP(url, offer.sdp));
 		}
 
-		IEnumerator ExchangeSDP( string url, string offer )
+		IEnumerator ExchangeSDP(string url, string offer)
 		{
 			var task = Task<string>.Run(async () =>
 			{
@@ -149,7 +149,7 @@ public class Subscriber : MonoBehaviour
 
 			yield return new WaitUntil(() => task.IsCompleted);
 
-			if( task.Exception != null )
+			if (task.Exception != null)
 			{
 				Debug.Log($"Exchange SDP failure, url={url} error={task.Exception.ToString()}");
 				yield break;
@@ -158,7 +158,7 @@ public class Subscriber : MonoBehaviour
 			StartCoroutine(OnGotAnswerSuccess(task.Result));
 		}
 
-		IEnumerator OnGotAnswerSuccess( string answer )
+		IEnumerator OnGotAnswerSuccess(string answer)
 		{
 			RTCSessionDescription desc = new RTCSessionDescription();
 			desc.type = RTCSdpType.Answer;
